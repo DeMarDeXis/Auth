@@ -1,0 +1,15 @@
+env: "local"
+#storage_path: "./storage/sso.db"
+token_ttl: 1h
+grpc:
+  port: 44044
+  timeout: 10h
+
+db:
+  host: "192.168.99.100"
+  port: 5434
+  username: "postgres"
+  password: "qwerty"
+  db_name: "postgres"
+  ssl_mode: "disable"
+

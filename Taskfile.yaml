@@ -1,0 +1,49 @@
+version: "3"
+
+vars:
+  STORAGE_PATH: "./storage/sso.db"
+  MIGRATIONS_PATH: "./migrations"
+  CONFIG_PATH: "./config/local.yaml"
+
+tasks:
+  migrator:
+    aliases:
+      - cmd-migrator
+    desc: "Run a command migrations"
+    cmds:
+      - go run ./cmd/migrator/main.go --storage-path={{ .STORAGE_PATH }} --migrations-path={{ .MIGRATIONS_PATH }}
+
+  main:
+    aliases:
+      - cmd-main
+    desc: "Run a command main"
+    cmds:
+      - go run ./cmd/sso/main.go --config={{ .CONFIG_PATH }}
+
+  migrate-up:
+    aliases:
+      - mup
+    desc: "Run a command migrate-up"
+    cmds:
+      - migrate -path ./schema -database 'postgres://postgres:qwerty@192.168.99.100:5434?sslmode=disable' up
+
+  migrate-down:
+    aliases:
+      - mdown
+    desc: "Run a command migrate-down"
+    cmds:
+      - migrate -path ./schema -database 'postgres://postgres:qwerty@192.168.99.100:5434?sslmode=disable' down --all
+
+  docker-up:
+    aliases:
+      - dup
+    desc: "Run a command docker-up"
+    cmds:
+      - docker-compose up -d
+
+  docker-down:
+    aliases:
+      - ddown
+    desc: "Run a command docker-down"
+    cmds:
+      - docker-compose down
