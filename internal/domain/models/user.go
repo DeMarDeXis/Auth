@@ -1,7 +1,10 @@
 package models
 
-type User struct {
-	ID       int64
-	Email    string
-	PassHash []byte
+import "time"
+
+type UserToken struct {
+	ID        int
+	UserID    int64
+	CreatedAt time.Time
+	ExpiresAt time.Time
 }

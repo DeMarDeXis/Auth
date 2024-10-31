@@ -34,7 +34,7 @@ func New(
 	}
 
 	// TODO: init auth service (auth)
-	authService := auth.New(log, storageInit, storageInit, storageInit, tokenTTL)
+	authService := auth.New(log, storageInit, tokenTTL)
 
 	grpcApp := grpcapp.New(log, authService, grpcPort)
 

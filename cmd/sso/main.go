@@ -1,7 +1,5 @@
 package main
 
-// 3 12 31
-
 import (
 	"fmt"
 	_ "github.com/lib/pq"
@@ -80,5 +78,5 @@ func setupPrettySlog() *slog.Logger {
 	return slog.New(handler)
 }
 
-//TODO: fix db migration
+//TODO: fix JWT
 //TODO: connect to api gateway

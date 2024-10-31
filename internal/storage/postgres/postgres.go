@@ -11,8 +11,7 @@ const (
 )
 
 const (
-	appsTable  = "apps"
-	usersTable = "users"
+	userTokenTable = "user"
 )
 
 type StorageConfig struct {

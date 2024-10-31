@@ -2,87 +2,54 @@ package postgres
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"sso/internal/domain/models"
+	"sso/internal/lib/jwt"
+	"time"
 )
+
+const salt = "hjqrhjqw124617ajfhajs"
 
 type AuthStorage struct {
 	db *sqlx.DB
 }
 
-func NewAuthStorage(db *sqlx.DB) *AuthStorage {
+func NewTokenStorage(db *sqlx.DB) *AuthStorage {
 	return &AuthStorage{db: db}
 }
 
-func (s *AuthStorage) SaveUser(ctx context.Context, email string, passHash []byte) (int64, error) {
-	const op = "storage.postgres.SaveUser"
+func (s *AuthStorage) GetToken(ctx context.Context, user models.UserToken) (string, error) {
+	const op = "storage.postgres.GetToken"
 
-	query := `INSERT INTO users(email, pass_hash) VALUES($1, $2) RETURNING id`
-
-	var id int64
-	err := s.db.QueryRowContext(ctx, query, email, passHash).Scan(&id)
+	token, err := generateTokenHash(user.UserID)
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
+		return "", fmt.Errorf("%s: failed to generate token: %w", op, err)
 	}
 
-	return id, nil
+	// Store token usage in database
+	q := `
+        INSERT INTO users (user_id, hashToken, created_at, expires_at) 
+        VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + INTERVAL '24 hours')
+    	`
+
+	if _, err := s.db.ExecContext(ctx, q, user.UserID, token); err != nil {
+		return "", fmt.Errorf("%s: failed to store token: %w", op, err)
+	}
+
+	return token, nil
 }
 
-func (s *AuthStorage) User(ctx context.Context, email string) (models.User, error) {
-	const op = "storage.postgres.User"
+func generateTokenHash(userID int64) (token string, err error) {
+	const op = "storage.postgres.generateTokenHash"
 
-	stmt, err := s.db.Prepare("SELECT id, email, pass_hash FROM users WHERE email = $1")
+	token, err = jwt.NewToken(models.UserToken{UserID: userID}, 24*time.Hour)
 	if err != nil {
-		return models.User{}, fmt.Errorf("%s: %w", op, err)
+		return "", fmt.Errorf("%s: failed to create JWT token: %w", op, err)
 	}
 
-	row := stmt.QueryRowContext(ctx, email)
+	hash := sha256.Sum256([]byte(token + salt))
 
-	var user models.User
-
-	err = row.Scan(&user.ID, &user.Email, &user.PassHash)
-	if err != nil {
-		return models.User{}, fmt.Errorf("%s: %w", op, err)
-	}
-	// TODO: add errors
-	return user, nil
-}
-
-func (s *AuthStorage) IsAdmin(ctx context.Context, userID int64) (bool, error) {
-	const op = "storage.postgres.IsAdmin"
-
-	stmt, err := s.db.Prepare("SELECT is_admin FROM users WHERE id = $1")
-	if err != nil {
-		return false, fmt.Errorf("%s: %w", op, err)
-	}
-
-	row := stmt.QueryRowContext(ctx, userID)
-	var isAdmin bool
-
-	err = row.Scan(&isAdmin)
-	if err != nil {
-		return false, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return isAdmin, nil
-}
-
-func (s *AuthStorage) App(ctx context.Context, appID int) (models.App, error) {
-	const op = "storage.postgres.App"
-
-	stmt, err := s.db.Prepare("SELECT id, name, description, user_id FROM apps WHERE id = $1")
-	if err != nil {
-		return models.App{}, fmt.Errorf("%s: %w", op, err)
-	}
-
-	row := stmt.QueryRowContext(ctx, appID)
-
-	var app models.App
-	err = row.Scan(&app.ID, &app.Name, &app.Secret)
-	if err != nil {
-		return models.App{}, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return app, nil
+	return fmt.Sprintf("%x", hash), nil
 }
