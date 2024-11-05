@@ -78,5 +78,5 @@ func setupPrettySlog() *slog.Logger {
 	return slog.New(handler)
 }
 
-//TODO: fix JWT
-//TODO: connect to api gateway
+//TODO: fix JWT -> STATUS: CHECK
+//TODO: postgres/GetToken

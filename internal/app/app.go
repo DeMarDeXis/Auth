@@ -20,7 +20,6 @@ func New(
 	config config.Config,
 	tokenTTL time.Duration,
 ) *App {
-	// TODO: init storage (storage)
 	db, err := postgres.New(config.DB, log)
 	if err != nil {
 		log.Error("failed to init storage", slog.String("err", err.Error()))
@@ -33,7 +32,6 @@ func New(
 		return nil
 	}
 
-	// TODO: init auth service (auth)
 	authService := auth.New(log, storageInit, tokenTTL)
 
 	grpcApp := grpcapp.New(log, authService, grpcPort)

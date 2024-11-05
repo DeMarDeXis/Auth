@@ -30,7 +30,6 @@ var (
 // New returns a new instance of the Auth service
 func New(
 	log *slog.Logger,
-
 	getter Getter,
 	tokenTTL time.Duration,
 ) *Auth {

@@ -8,7 +8,7 @@ import (
 )
 
 // TODO: add to config
-const secretKey = "xH7cT9pK2vN4mX8qL3jY5nR6bA1wE0iS"
+const secretKey = "GdeGeneratorrr"
 
 func NewToken(user models.UserToken, duration time.Duration) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
